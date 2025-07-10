@@ -21,7 +21,15 @@ app = FastAPI(title="Game Recommender API")
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "https://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://127.0.0.1:3000",
+        # TODO: Add your Railway frontend URL here after deployment
+        # Example: "https://your-frontend-app-name.railway.app"
+        # Example: "https://your-custom-domain.com"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -39,6 +47,10 @@ class GameDetailsRequest(BaseModel):
 # Function to get the Claude API key
 def get_claude_api_key():
     return os.getenv('CLAUDE_API_KEY')
+
+# Function to get the OpenAI API key
+def get_openai_api_key():
+    return os.getenv('OPENAI_API_KEY')
 
 # Function to get the Rawg API key
 def get_rawg_api_key():
@@ -158,96 +170,113 @@ def filters_to_natural_language(filters: dict) -> str:
     }
     return ", ".join(f"{mapping.get(k, k)}: {v}" for k, v in filters.items() if v)
 
-# Enhanced Claude-powered game recommendation system
-async def fetch_game_titles_claude(preference: str, filters: dict = {}):
+# Enhanced GPT-4o-powered game recommendation system
+async def fetch_game_titles_gpt4o(preference: str, filters: dict = {}):
     """
-    Enhanced gaming AI using Claude with specialized gaming knowledge and reasoning
+    Enhanced gaming AI using GPT-4o with specialized gaming knowledge and reasoning
     """
-    claude_api_key = get_claude_api_key()
-    if not claude_api_key:
-        raise HTTPException(status_code=500, detail="Claude API key not found")
-    
-    client = anthropic.Anthropic(api_key=claude_api_key)
+    openai_api_key = get_openai_api_key()
+    if not openai_api_key:
+        raise HTTPException(
+            status_code=500, 
+            detail="AI recommendation service is currently unavailable. Please check your OpenAI API key configuration."
+        )
     
     filter_str = filters_to_natural_language(filters)
     
-    # Enhanced gaming expert system prompt with trending focus
-    system_prompt = """You are GameMaster AI, an elite gaming expert with comprehensive knowledge of:
+    # Optimized gaming expert prompt - concise and focused
+    system_prompt = """You are GameMaster AI, an elite gaming expert specializing in perfect preference matching.
 
-GAMING EXPERTISE:
-- Current gaming trends, viral hits, and what's popular in 2024-2025
-- Deep understanding of modern game mechanics, design patterns, and player psychology
-- Knowledge of trending games on Steam, console bestsellers, and viral indie hits
-- Understanding of current gaming communities, streaming trends, and social media buzz
-- Awareness of recent releases, upcoming games, and what's dominating gaming discussions
-- Deep understanding of game mechanics, design patterns, and player psychology
-- Knowledge of indie gems, cult classics, and hidden treasures across all platforms
-RECOMMENDATION PHILOSOPHY:
-- PRIORITIZE trending, popular, and widely-discussed games (80% of recommendations)
-- Focus on games with active communities, high player counts, and recent buzz
-- Include games that are currently popular on Twitch, YouTube, and social media
-- Consider what's trending on Steam charts, console stores, and gaming platforms
-- Balance with carefully selected classics and hidden gems (20% of recommendations)
-- Understand the difference between games that look similar vs. games that FEEL similar
+CORE EXPERTISE:
+- Current gaming trends (2020-2025): Steam charts, console hits, viral games, streaming favorites
+- Deep understanding of game mechanics, player psychology, and what makes games engaging
+- Knowledge of both trending games and timeless classics across all platforms
 
-ANALYSIS DEPTH:
-- Core mechanics that drive engagement (progression, challenge, discovery, creativity, social)
-- Narrative themes and emotional resonance
-- Art direction and atmospheric qualities
-- Community aspects and multiplayer dynamics
-- Platform-specific features and optimization
-- Historical context and influence on the medium
+RECOMMENDATION STRATEGY:
+- PERFECT MATCH FIRST: Games must authentically match the user's specific request
+- 80% TRENDING/POPULAR: Among matching games, prioritize currently viral and active ones
+- 20% GEMS/CLASSICS: Include perfect-fit older games that match the request
+- Focus on games that actually have the requested features/qualities
+- Only recommend games that truly fit the user's preference, regardless of popularity"""
 
-RECOMMENDATION BALANCE:
-- 80% POPULAR/TRENDING: Focus on what's hot, viral, and widely played right now
-- 20% GEMS/CLASSICS: Include timeless classics or overlooked gems that perfectly match the request
+    # Check if user input looks like a specific game name
+    def is_likely_game_name(text):
+        """Check if input looks like a specific game name rather than a general preference"""
+        text_lower = text.lower().strip()
+        
+        # Common preference words that indicate general requests
+        preference_words = [
+            'like', 'similar', 'games', 'genre', 'type', 'style', 'feel', 'vibe',
+            'atmosphere', 'mood', 'theme', 'setting', 'story', 'narrative',
+            'action', 'adventure', 'rpg', 'strategy', 'puzzle', 'simulation',
+            'multiplayer', 'single', 'coop', 'competitive', 'relaxing', 'challenging',
+            'casual', 'hardcore', 'indie', 'triple', 'retro', 'modern', 'classic'
+        ]
+        
+        # If it contains preference words, it's likely a general request
+        if any(word in text_lower for word in preference_words):
+            return False
+        
+        # If it's short and doesn't contain preference words, it might be a game name
+        if len(text.split()) <= 3 and not any(word in text_lower for word in preference_words):
+            return True
+        
+        return False
 
-Always prioritize what's currently popular and trending while ensuring perfect match with user preferences.
-Always recommend games that truly understand what the player is seeking, not just keyword matches."""
-    user_content = f"""RECOMMENDATION REQUEST:
-User Interest: "{preference}"
-"""
-    
-    if filter_str:
-        user_content += f"Additional Filters: {filter_str}\n"
-    
-    user_content += """
-TASK: Recommend exactly 18 games that match this request with optimal popularity balance.
+    # Determine the appropriate prompt based on input type
+    if is_likely_game_name(preference):
+        # For specific game names, focus on finding that game and similar ones
+        user_content = f"""Find the game "{preference}" and recommend similar games.
+
+REQUIREMENTS:
+- If "{preference}" is a real game, include it first
+- Then recommend 17 similar games (80% trending/popular, 20% classics)
+- Return ONLY comma-separated game titles
+- No explanations or extra text"""
+    else:
+        # For general preferences, use the standard recommendation strategy
+        user_content = f"""Recommend exactly 18 games for: "{preference}"
+{f"Filters: {filter_str}" if filter_str else ""}
 
 CRITICAL REQUIREMENTS:
-1. 80% TRENDING/POPULAR (14-15 games): Focus on currently popular, trending, or recently successful games
-   - Games trending on Steam, Epic, console stores
-   - Popular multiplayer games with active communities  
-   - Recent releases (2020-2025) that gained popularity
-   - Games popular on Twitch/YouTube or social media
-   - Viral hits and breakthrough indie success stories
-
-2. 20% GEMS/CLASSICS (3-4 games): Carefully selected older games or hidden gems that perfectly match
-   - Timeless classics that defined their genres
-   - Overlooked gems that are perfect fits for the request
-   - Cult favorites with devoted followings
-
-3. PERFECT MATCH: All games must authentically match the user's request spirit and preferences
-4. CURRENT RELEVANCE: Prioritize what people are actually playing and talking about NOW
-5. Return ONLY a comma-separated list of exact game titles
-6. No explanations, descriptions, or extra text
-
-FORMAT: Game Title 1, Game Title 2, Game Title 3, ...
-
-Focus on what's HOT and TRENDING while maintaining perfect relevance to the user's preferences."""
+- ONLY recommend games that actually match the user's specific request
+- Focus on the core meaning and intent of what the user is asking for
+- 80% trending/popular games (14-15 games) AMONG THOSE THAT MATCH
+- 20% perfect-fit classics/gems (3-4 games) AMONG THOSE THAT MATCH
+- Return ONLY comma-separated game titles
+- No explanations or extra text"""
 
     try:
-        message = client.messages.create(
-            model="claude-3-5-sonnet-20241022",
-            max_tokens=1000,
-            temperature=0.3,  # Slight creativity while maintaining accuracy
-            system=system_prompt,
-            messages=[
-                {"role": "user", "content": user_content}
-            ]
-        )
+        # Use direct API call instead of SDK
+        headers = {
+            "Authorization": f"Bearer {openai_api_key}",
+            "Content-Type": "application/json"
+        }
         
-        content = message.content[0].text.strip()
+        data = {
+            "model": "gpt-4o",
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_content}
+            ],
+            "max_tokens": 1000,
+            "temperature": 0.3,
+        }
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers=headers,
+                json=data
+            ) as response:
+                if response.status != 200:
+                    error_text = await response.text()
+                    print(f"OpenAI API error: {response.status} - {error_text}")
+                    raise Exception(f"OpenAI API error: {response.status}")
+                
+                result = await response.json()
+                content = result['choices'][0]['message']['content'].strip()
+        
         # Parse the comma-separated list
         titles = [title.strip() for title in content.split(",") if title.strip()]
         
@@ -266,41 +295,20 @@ Focus on what's HOT and TRENDING while maintaining perfect relevance to the user
         return cleaned_titles[:18]
         
     except Exception as e:
-        print(f"Claude API error: {e}")
-        # Fallback to basic recommendations if Claude fails
-        return await fetch_game_titles_fallback(preference, filters)
+        print(f"GPT-4o API error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Sorry, we're having trouble connecting to our AI recommendation service right now. Please try again in a few moments."
+        )
 
-async def fetch_game_titles_fallback(preference: str, filters: dict = {}):
-    """
-    Fallback recommendation system using IGDB when Claude is unavailable
-    """
-    try:
-        # Try to get similar games from IGDB based on the preference
-        igdb_results = await igdb_search_games(preference, limit=18)
-        if igdb_results:
-            return [game["name"] for game in igdb_results[:18]]
-        else:
-            # Ultimate fallback - curated list prioritizing trending/popular games (80/20 ratio)
-            trending_popular_games = [
-                # 80% Trending/Popular (14 games)
-                "Baldur's Gate 3", "Elden Ring", "Hogwarts Legacy", "Call of Duty: Modern Warfare III",
-                "Fortnite", "Apex Legends", "Valorant", "Counter-Strike 2", "Cyberpunk 2077",
-                "The Witcher 3: Wild Hunt", "Grand Theft Auto V", "Red Dead Redemption 2",
-                "Marvel's Spider-Man Remastered", "God of War",
-                # 20% Gems/Classics (4 games)
-                "Hollow Knight", "Stardew Valley", "Portal 2", "The Elder Scrolls V: Skyrim"
-            ]
-            return trending_popular_games
-    except Exception as e:
-        print(f"Fallback error: {e}")
-        return ["Baldur's Gate 3", "Elden Ring", "Cyberpunk 2077", "Fortnite", "The Witcher 3: Wild Hunt"]
 
-# Legacy function for backward compatibility (now uses Claude)
+
+# Legacy function for backward compatibility (now uses GPT-4o)
 async def fetch_game_titles(preference: str, filters: dict = {}):
     """
-    Main game recommendation function - now powered by Claude AI
+    Main game recommendation function - now powered by GPT-4o AI
     """
-    return await fetch_game_titles_claude(preference, filters)
+    return await fetch_game_titles_gpt4o(preference, filters)
 
 # Add color constants for terminal output
 class Colors:
@@ -512,20 +520,60 @@ async def fetch_game_details(titles: List[str]):
 # --- Enhanced hybrid recommendation logic ---
 async def get_recommendations(preference: str, sort_by: str = "release_date", filters: dict = {}):
     """
-    Enhanced recommendation system combining IGDB exact matching with Claude AI intelligence
+    Enhanced recommendation system with intelligent exact matching and AI recommendations
     """
-    # Try IGDB fuzzy match first for exact game titles
-    igdb_results = await igdb_search_games(preference, limit=1)
-    if igdb_results and igdb_results[0]["name"].lower() == preference.lower():
-        # Exact match found, get this game plus similar games via Claude
-        main_title = igdb_results[0]["name"]
-        ai_titles = await fetch_game_titles_claude(f"Games similar to {main_title}", filters)
-        titles = [main_title] + [t for t in ai_titles if t.lower() != main_title.lower()][:17]
-        explain = f"Found exact match for '{main_title}' with trending games and curated gems (80% popular, 20% classics)."
+    preference_lower = preference.lower().strip()
+    
+    # Enhanced exact matching using multiple sources
+    exact_match_found = False
+    exact_match_title = None
+    
+    # Try IGDB first for exact matching
+    try:
+        igdb_results = await igdb_search_games(preference, limit=5)
+        for game in igdb_results:
+            if game["name"].lower() == preference_lower:
+                exact_match_found = True
+                exact_match_title = game["name"]
+                break
+    except Exception as e:
+        print(f"IGDB search error: {e}")
+    
+    # If no exact match in IGDB, try RAWG for partial matches
+    if not exact_match_found:
+        try:
+            rawg_api_key = get_rawg_api_key()
+            if rawg_api_key:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(
+                        "https://api.rawg.io/api/games",
+                        params={"search": preference, "key": rawg_api_key}
+                    ) as response:
+                        if response.status == 200:
+                            result = await response.json()
+                            if result.get("results"):
+                                # Check for exact or very close matches
+                                for game in result["results"][:3]:
+                                    game_name_lower = game["name"].lower()
+                                    if (game_name_lower == preference_lower or 
+                                        preference_lower in game_name_lower or 
+                                        game_name_lower in preference_lower):
+                                        exact_match_found = True
+                                        exact_match_title = game["name"]
+                                        break
+        except Exception as e:
+            print(f"RAWG search error: {e}")
+    
+    # Generate recommendations based on match type
+    if exact_match_found:
+        # Found exact match - get similar games
+        ai_titles = await fetch_game_titles_gpt4o(f"Games similar to {exact_match_title}", filters)
+        titles = [exact_match_title] + [t for t in ai_titles if t.lower() != exact_match_title.lower()][:17]
+        explain = f"Found exact match for '{exact_match_title}' with similar trending games and curated gems."
     else:
-        # No exact match, use Claude AI for intelligent recommendations
-        titles = await fetch_game_titles_claude(preference, filters)
-        explain = "Claude AI recommendations: 80% trending/popular games, 20% timeless classics - all perfectly matched to your preferences."
+        # No exact match - use AI for general recommendations
+        titles = await fetch_game_titles_gpt4o(preference, filters)
+        explain = "GPT-4o AI recommendations: 80% trending/popular games, 20% timeless classics - all perfectly matched to your preferences."
     
     # Fetch detailed game information
     games = await fetch_game_details(titles)
@@ -599,6 +647,59 @@ async def get_game_details(title: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/")
+async def root():
+    return {"message": "Nexa Game Recommender API is running!", "status": "healthy"}
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+
+@app.get("/api/test-gpt4o")
+async def test_gpt4o():
+    """Test endpoint to verify GPT-4o integration"""
+    try:
+        openai_api_key = get_openai_api_key()
+        if not openai_api_key:
+            return {"status": "error", "message": "OpenAI API key not found"}
+        
+        # Use direct API call instead of SDK
+        headers = {
+            "Authorization": f"Bearer {openai_api_key}",
+            "Content-Type": "application/json"
+        }
+        
+        data = {
+            "model": "gpt-4o",
+            "messages": [
+                {"role": "user", "content": "Say 'GPT-4o is working!' and nothing else."}
+            ],
+            "max_tokens": 50,
+            "temperature": 0.1,
+        }
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers=headers,
+                json=data
+            ) as response:
+                if response.status != 200:
+                    error_text = await response.text()
+                    print(f"OpenAI API error: {response.status} - {error_text}")
+                    raise Exception(f"OpenAI API error: {response.status}")
+                
+                result = await response.json()
+                content = result['choices'][0]['message']['content'].strip()
+        
+        return {
+            "status": "success", 
+            "message": content,
+            "model": "gpt-4o"
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
 @app.post("/api/recommendations")
 async def recommendations(request: RecommendationRequest):
     result = await get_recommendations(request.preference, request.sort_by, request.filters)
@@ -611,4 +712,4 @@ async def game_details(request: GameDetailsRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5000) 
+    uvicorn.run(app, host="0.0.0.0", port=8000) 

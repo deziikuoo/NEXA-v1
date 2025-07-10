@@ -88,7 +88,7 @@ function App() {
           </p>
           <div className="xai-badge">
             <span>🧠</span>
-            Powered by Claude AI Gaming Expert
+            Powered by GPT-4o AI Gaming Expert
           </div>
         </header>
 

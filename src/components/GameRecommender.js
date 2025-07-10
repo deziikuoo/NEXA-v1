@@ -63,23 +63,40 @@ function GameRecommender({
   ];
 
   const handleFilterChange = (filter, value) => {
-    setFilters((prev) => ({ ...prev, [filter]: value }));
-    if (
-      !filterChips.some(
-        (chip) => chip.filter === filter && chip.value === value
-      )
-    ) {
-      setFilterChips((prev) => [...prev, { filter, value }]);
+    if (value) {
+      // Add or update filter
+      setFilters((prev) => ({ ...prev, [filter]: value }));
+      if (
+        !filterChips.some(
+          (chip) => chip.filter === filter && chip.value === value
+        )
+      ) {
+        setFilterChips((prev) => [...prev, { filter, value }]);
+      }
+    } else {
+      // Remove filter if value is empty
+      setFilters((prev) => {
+        const newFilters = { ...prev };
+        delete newFilters[filter];
+        return newFilters;
+      });
+      setFilterChips((prev) => prev.filter((chip) => chip.filter !== filter));
     }
   };
 
   const handleRemoveChip = (chipToRemove) => {
+    console.log('Removing chip:', chipToRemove); // Debug log
     setFilterChips((prev) => prev.filter((chip) => chip !== chipToRemove));
     setFilters((prev) => {
       const newFilters = { ...prev };
       delete newFilters[chipToRemove.filter];
       return newFilters;
     });
+  };
+
+  const handleClearAllFilters = () => {
+    setFilterChips([]);
+    setFilters({});
   };
 
   const handleSurpriseMe = () => {
@@ -177,9 +194,9 @@ function GameRecommender({
             <select
               key={key}
               onChange={(e) => handleFilterChange(key, e.target.value)}
-              defaultValue=""
+              value={filters[key] || ""}
             >
-              <option value="" disabled>
+              <option value="">
                 {label}
               </option>
               {options.map((opt) => (
@@ -203,9 +220,9 @@ function GameRecommender({
               <select
                 key={key}
                 onChange={(e) => handleFilterChange(key, e.target.value)}
-                defaultValue=""
+                value={filters[key] || ""}
               >
-                <option value="" disabled>
+                <option value="">
                   {label}
                 </option>
                 {options.map((opt) => (
@@ -231,11 +248,28 @@ function GameRecommender({
           {filterChips.map((chip, i) => (
             <span className="filter-chip" key={chip.filter + chip.value + i}>
               {chip.filter}: {chip.value}
-              <button type="button" onClick={() => handleRemoveChip(chip)}>
+              <button 
+                type="button" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleRemoveChip(chip);
+                }}
+                className="filter-chip-remove-btn"
+              >
                 ×
               </button>
             </span>
           ))}
+          {filterChips.length > 0 && (
+            <button
+              type="button"
+              className="clear-all-filters-btn"
+              onClick={handleClearAllFilters}
+            >
+              Clear All
+            </button>
+          )}
         </div>
       </div>
 
@@ -246,7 +280,7 @@ function GameRecommender({
             What kind of games do you like?
           </label>
           <div className="form-row">
-            <div className="claude-powered">🧠 Claude AI-Powered</div>
+            <div className="claude-powered">🧠 GPT-4o AI-Powered</div>
           </div>
           <div className="input-group" style={{ position: "relative" }}>
             <input
@@ -283,7 +317,7 @@ function GameRecommender({
           </div>
           <div className="form-hint-container">
             <p className="form-hint">
-              Our Claude AI gaming expert understands game mechanics, player
+              Our GPT-4o AI gaming expert understands game mechanics, player
               psychology, and gaming culture!
             </p>
           </div>

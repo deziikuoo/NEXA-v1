@@ -1,6 +1,11 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8000/api";
+// Automatically detect environment and use appropriate API URL
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? process.env.REACT_APP_API_URL || 'https://your-app-name.railway.app/api'
+  : "http://localhost:8000/api";
+
+console.log('API Base URL:', API_BASE_URL);
 
 class GameService {
   async getRecommendations(preference, sortBy, filters = {}) {
@@ -13,7 +18,7 @@ class GameService {
       return response.data;
     } catch (error) {
       throw new Error(
-        error.response?.data?.error || "Failed to fetch recommendations"
+        error.response?.data?.detail || error.response?.data?.error || "Failed to fetch recommendations"
       );
     }
   }
@@ -26,7 +31,7 @@ class GameService {
       return response.data;
     } catch (error) {
       throw new Error(
-        error.response?.data?.error || "Failed to fetch game details"
+        error.response?.data?.detail || error.response?.data?.error || "Failed to fetch game details"
       );
     }
   }

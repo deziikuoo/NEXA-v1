@@ -904,7 +904,8 @@ body {
   opacity: 0.1;
 }
 
-.filter-chip button {
+.filter-chip button,
+.filter-chip-remove-btn {
   background: none;
   border: none;
   color: var(--neon-pink);
@@ -913,10 +914,38 @@ body {
   padding: 0;
   margin-left: var(--space-xs);
   transition: transform var(--transition-fast);
+  min-width: 20px;
+  min-height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  z-index: 2000;
 }
 
-.filter-chip button:hover {
+.filter-chip button:hover,
+.filter-chip-remove-btn:hover {
   transform: scale(1.2);
+  background: rgba(255, 0, 110, 0.1);
+}
+
+/* Clear All Filters Button */
+.clear-all-filters-btn {
+  padding: var(--space-xs) var(--space-md);
+  background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  font-size: var(--text-small);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  margin-left: var(--space-sm);
+}
+
+.clear-all-filters-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 20px rgba(255, 0, 110, 0.4);
 }
 
 /* ===== Game Grid (Competitive Arena) ===== */
