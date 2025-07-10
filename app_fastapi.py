@@ -666,42 +666,12 @@ async def get_game_details(title: str):
 @app.get("/")
 async def root():
     """Root endpoint - can also serve as a health check"""
-    try:
-        return {
-            "message": "Nexa Game Recommender API is running!", 
-            "status": "healthy",
-            "timestamp": datetime.now().isoformat(),
-            "endpoints": {
-                "health": "/health",
-                "recommendations": "/api/recommendations",
-                "game_details": "/api/game-details",
-                "test_gpt4o": "/api/test-gpt4o"
-            }
-        }
-    except Exception as e:
-        return {
-            "message": "Nexa Game Recommender API is running!", 
-            "status": "healthy",
-            "timestamp": datetime.now().isoformat(),
-            "note": "Some features may be limited"
-        }
+    return {"status": "ok", "message": "API is running"}
 
 @app.get("/health")
 async def health_check():
     """Health check endpoint for Railway deployment"""
-    try:
-        # Simple health check - just return success
-        return {
-            "status": "healthy", 
-            "timestamp": datetime.now().isoformat(),
-            "service": "Nexa Game Recommender API"
-        }
-    except Exception as e:
-        return {
-            "status": "healthy",  # Still return healthy even if there's an error
-            "timestamp": datetime.now().isoformat(),
-            "service": "Nexa Game Recommender API"
-        }
+    return {"status": "ok"}
 
 @app.get("/api/test-gpt4o")
 async def test_gpt4o():
