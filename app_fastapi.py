@@ -56,6 +56,22 @@ def get_openai_api_key():
 def get_rawg_api_key():
     return os.getenv('RAWG_API_KEY')
 
+# Function to check if required environment variables are set
+def check_environment():
+    """Check if required environment variables are available"""
+    missing_vars = []
+    
+    if not get_openai_api_key():
+        missing_vars.append("OPENAI_API_KEY")
+    if not get_rawg_api_key():
+        missing_vars.append("RAWG_API_KEY")
+    if not TWITCH_CLIENT_ID:
+        missing_vars.append("TWITCH_CLIENT_ID")
+    if not TWITCH_CLIENT_SECRET:
+        missing_vars.append("TWITCH_CLIENT_SECRET")
+    
+    return missing_vars
+
 # --- TWITCH API INTEGRATION ---
 TWITCH_CLIENT_ID = os.getenv('TWITCH_CLIENT_ID')
 TWITCH_CLIENT_SECRET = os.getenv('TWITCH_CLIENT_SECRET')
@@ -649,11 +665,42 @@ async def get_game_details(title: str):
 
 @app.get("/")
 async def root():
-    return {"message": "Nexa Game Recommender API is running!", "status": "healthy"}
+    """Root endpoint - can also serve as a health check"""
+    return {
+        "message": "Nexa Game Recommender API is running!", 
+        "status": "healthy",
+        "timestamp": datetime.now().isoformat(),
+        "endpoints": {
+            "health": "/health",
+            "recommendations": "/api/recommendations",
+            "game_details": "/api/game-details",
+            "test_gpt4o": "/api/test-gpt4o"
+        }
+    }
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+    """Health check endpoint for Railway deployment"""
+    try:
+        # Check environment variables
+        missing_vars = check_environment()
+        
+        # Basic health check - just return success
+        return {
+            "status": "healthy", 
+            "timestamp": datetime.now().isoformat(),
+            "service": "Nexa Game Recommender API",
+            "environment": {
+                "missing_variables": missing_vars,
+                "ready": len(missing_vars) == 0
+            }
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "error": str(e),
+            "timestamp": datetime.now().isoformat()
+        }
 
 @app.get("/api/test-gpt4o")
 async def test_gpt4o():
