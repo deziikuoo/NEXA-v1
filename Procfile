@@ -1,1 +1,1 @@
-web: python start.py 
+web: python -m uvicorn app_fastapi:app --host 0.0.0.0 --port $PORT --workers 1 --log-level info 
