@@ -282,7 +282,7 @@ function GameRecommender({
             What kind of games do you like?
           </label>
           <div className="form-row">
-            <div className="claude-powered">🧠 GPT-4o AI-Powered</div>
+    
           </div>
           <div className="input-group" style={{ position: "relative" }}>
             <input
@@ -319,7 +319,7 @@ function GameRecommender({
           </div>
           <div className="form-hint-container">
             <p className="form-hint">
-              Our GPT-4o AI gaming expert understands game mechanics, player
+              Our <span className="gpt4o-glow">GPT-4o AI</span> gaming expert understands game mechanics, player
               psychology, and gaming culture!
             </p>
           </div>

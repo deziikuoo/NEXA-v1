@@ -56,7 +56,7 @@ Railway will automatically detect the Dockerfile and build using Docker instead 
 
 ## Troubleshooting
 
-If you still encounter issues:
+If you still encounter issues:s
 
 1. **Check Railway Logs**: Look for specific error messages
 2. **Verify Environment Variables**: Ensure all API keys are set

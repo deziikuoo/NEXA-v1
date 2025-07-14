@@ -457,17 +457,12 @@ body {
   letter-spacing: 0.02em;
 }
 
-.claude-powered {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--space-xs) var(--space-md);
-  background: linear-gradient(135deg, #8b5cf6, #06b6d4);
-  border-radius: 20px;
-  font-size: var(--text-small);
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  animation: neonPulse 2s ease-in-out infinite;
+.gpt4o-glow {
+  background: linear-gradient(135deg, var(--neon-purple), var(--neon-teal));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
 }
 
 /* AR Input Field */
@@ -991,7 +986,7 @@ body {
 }
 
 .game-card:hover {
-  transform: translateY(-8px) rotateX(5deg);
+  transform: translateY(-4px) rotateX(2deg);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 60px rgba(157, 78, 221, 0.2);
 }
 

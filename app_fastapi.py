@@ -596,7 +596,7 @@ async def get_recommendations(preference: str, sort_by: str = "release_date", fi
         else:
             # No exact match - use AI for general recommendations
             titles = await fetch_game_titles_gpt4o(preference, filters)
-            explain = "GPT-4o AI recommendations: 80% trending/popular games, 20% timeless classics - all perfectly matched to your preferences."
+            explain = "AI-powered game recommendations tailored to your preferences."
         # Fetch detailed game information
         games = await fetch_game_details(titles)
         if games:
