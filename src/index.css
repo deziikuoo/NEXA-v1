@@ -761,7 +761,7 @@ body {
 }
 
 .filter-row select {
-  flex: 1 1 150px;
+  height: 50px;
   min-width: 130px;
   padding: var(--space-sm) var(--space-md);
   background: rgba(255, 255, 255, 0.05);
@@ -788,7 +788,7 @@ body {
 
 /* Surprise Me Button */
 .surprise-me-btn {
-  flex: 1 1 150px;
+  height: 50px;
   min-width: 130px;
   padding: var(--space-sm) var(--space-md);
   background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
@@ -833,21 +833,30 @@ body {
 /* Toggle Advanced Button */
 .filter-toggle-row {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-around;
+  align-items: center;
   width: 100%;
+  height: 50px;
+  gap: 10px;
 }
 
 .toggle-advanced-btn {
-  padding: var(--space-xs) var(--space-md);
+  padding: var(--space-xs) var(--space-sm);
   background: transparent;
   color: var(--neon-teal);
   border: 1px solid var(--neon-teal);
-  border-radius: 20px;
-  font-size: var(--text-small);
+  border-radius: 7px;
+  font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: 0.05em;
   cursor: pointer;
   transition: all var(--transition-base);
+  align-self: center;
+  min-width: 25px;
+  height: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .toggle-advanced-btn:hover {
@@ -1327,6 +1336,12 @@ body {
   .filter-row select,
   .surprise-me-btn {
     width: 100%;
+  }
+
+  /* Reduce filter select height on mobile */
+  .filter-row select {
+    padding: 0.125em 1.5em 0.125em 0.75em;
+    font-size: 0.875rem;
   }
 
   .modal-content {

@@ -53,9 +53,9 @@ function GameRecommender({
     { key: "genre", label: "Genre", options: genreOptions },
     { key: "platform", label: "Platform", options: platformOptions },
     { key: "year", label: "Year", options: yearOptions },
+    { key: "mode", label: "Mode", options: modeOptions },
   ];
   const advancedFilterOptions = [
-    { key: "mode", label: "Mode", options: modeOptions },
     { key: "art_style", label: "Art Style", options: artStyleOptions },
     { key: "perspective", label: "Perspective", options: perspectiveOptions },
     { key: "difficulty", label: "Difficulty", options: difficultyOptions },
@@ -210,10 +210,10 @@ function GameRecommender({
           ))}
           <button
             type="button"
-            className="surprise-me-btn"
-            onClick={handleSurpriseMe}
+            className="toggle-advanced-btn"
+            onClick={() => setShowAdvancedFilters((prev) => !prev)}
           >
-            🎲 Surprise Me
+            {showAdvancedFilters ? "−" : "+"}
           </button>
         </div>
         {showAdvancedFilters && (
@@ -239,10 +239,10 @@ function GameRecommender({
         <div className="filter-toggle-row">
           <button
             type="button"
-            className="toggle-advanced-btn"
-            onClick={() => setShowAdvancedFilters((prev) => !prev)}
+            className="surprise-me-btn"
+            onClick={handleSurpriseMe}
           >
-            {showAdvancedFilters ? "Hide" : "More"} Filters
+            🎲 Surprise Me
           </button>
         </div>
         {/* Filter Chips */}
