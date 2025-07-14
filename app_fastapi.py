@@ -2,6 +2,8 @@ import os
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Optional
 import json
@@ -12,6 +14,7 @@ from fastapi.responses import JSONResponse
 import time
 from datetime import datetime, timedelta
 import anthropic
+import os
 
 # Load environment variables from .env file
 load_dotenv()
@@ -34,6 +37,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Serve static files from the React build
+if os.path.exists("build"):
+    app.mount("/static", StaticFiles(directory="build/static"), name="static")
 
 # Pydantic models for request/response validation
 class RecommendationRequest(BaseModel):
@@ -665,7 +672,9 @@ async def get_game_details(title: str):
 
 @app.get("/")
 async def root():
-    """Root endpoint - can also serve as a health check"""
+    """Root endpoint - serves the React app or API status"""
+    if os.path.exists("build/index.html"):
+        return FileResponse("build/index.html")
     return {"status": "ok", "message": "API is running"}
 
 @app.get("/health")
@@ -728,6 +737,10 @@ async def game_details(request: GameDetailsRequest):
     result = await get_game_details(request.title)
     return result
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+# Catch-all route for React Router
+@app.get("/{full_path:path}")
+async def catch_all(full_path: str):
+    """Catch-all route to serve React app for client-side routing"""
+    if os.path.exists("build/index.html"):
+        return FileResponse("build/index.html")
+    return {"status": "error", "message": "Not found"} 

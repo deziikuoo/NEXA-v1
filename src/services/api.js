@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Automatically detect environment and use appropriate API URL
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? process.env.REACT_APP_API_URL || 'https://your-app-name.railway.app/api'
+  ? '/api'  // In production, API is served from the same domain
   : "http://localhost:8000/api";
 
 console.log('API Base URL:', API_BASE_URL);

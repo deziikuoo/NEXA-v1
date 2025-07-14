@@ -1,76 +1,75 @@
-# Railway Deployment Checklist
+# Railway Deployment Guide
 
-## Pre-Deployment Checklist
+This guide will help you deploy Nexa Game Recommender to Railway without the Nix environment issues.
 
-### ✅ Environment Variables
-Make sure these are set in Railway dashboard:
-- `OPENAI_API_KEY` - Your OpenAI API key for GPT-4o
-- `RAWG_API_KEY` - Your RAWG API key for game data
-- `TWITCH_CLIENT_ID` - Your Twitch application client ID
-- `TWITCH_CLIENT_SECRET` - Your Twitch application client secret
-- `IGDB_CLIENT_ID` - (Optional) IGDB client ID (defaults to Twitch)
-- `IGDB_CLIENT_SECRET` - (Optional) IGDB client secret (defaults to Twitch)
+## Quick Fix
 
-### ✅ Configuration Files
-- `railway.json` - Railway deployment configuration
-- `Procfile` - Process file for Railway
-- `start.py` - Startup script
-- `requirements.txt` - Python dependencies
-- `runtime.txt` - Python version specification
+The deployment has been updated to use Docker instead of Nixpacks to avoid the "externally-managed-environment" error.
+
+## Files Changed
+
+1. **Removed**: `nixpacks.toml` (was causing Nix environment conflicts)
+2. **Added**: `Dockerfile` (uses standard Python environment)
+3. **Updated**: `railway.json` (now uses Docker builder)
+4. **Updated**: `app_fastapi.py` (added static file serving for React app)
+5. **Added**: `.dockerignore` (optimizes Docker build)
 
 ## Deployment Steps
 
-1. **Connect Repository**: Link your GitHub repository to Railway
-2. **Set Environment Variables**: Add all required API keys in Railway dashboard
-3. **Deploy**: Railway will automatically build and deploy
-4. **Monitor Logs**: Check Railway logs for any startup issues
+### 1. Push Changes to GitHub
+```bash
+git add .
+git commit -m "Fix Railway deployment: switch to Docker from Nixpacks"
+git push origin main
+```
+
+### 2. Railway Configuration
+1. Go to your Railway dashboard
+2. Select your project
+3. Go to Settings → Environment Variables
+4. Add the following environment variables:
+
+```
+OPENAI_API_KEY=your_openai_api_key
+RAWG_API_KEY=your_rawg_api_key
+TWITCH_CLIENT_ID=your_twitch_client_id
+TWITCH_CLIENT_SECRET=your_twitch_client_secret
+IGDB_CLIENT_ID=your_igdb_client_id (optional)
+IGDB_CLIENT_SECRET=your_igdb_client_secret (optional)
+```
+
+### 3. Deploy
+Railway will automatically detect the Dockerfile and build using Docker instead of Nixpacks.
+
+## What Changed
+
+### Before (Causing Errors)
+- Used Nixpacks with Nix Python packages
+- `pip install` failed due to externally managed environment
+- Nix store filesystem conflicts
+
+### After (Fixed)
+- Uses Docker with standard Python 3.9-slim image
+- No Nix environment conflicts
+- Proper static file serving for React app
+- Optimized build process
 
 ## Troubleshooting
 
-### Health Check Fails
-If the health check fails:
+If you still encounter issues:
 
-1. **Check Logs**: Look at Railway logs for error messages
-2. **Verify Environment Variables**: Ensure all required API keys are set
-3. **Test Locally**: Run `python start.py` locally to test startup
-4. **Check Port**: Ensure the app listens on `$PORT` environment variable
+1. **Check Railway Logs**: Look for specific error messages
+2. **Verify Environment Variables**: Ensure all API keys are set
+3. **Rebuild**: Try triggering a new deployment
+4. **Contact Support**: If issues persist, contact Railway support
 
-### Common Issues
+## API Keys Required
 
-#### Issue: "Service unavailable" in health check
-**Solution**: 
-- Check if all environment variables are set
-- Verify the startup script works locally
-- Check Railway logs for Python import errors
+- **OpenAI API Key**: For GPT-4o game recommendations
+- **RAWG API Key**: For game database access
+- **Twitch Client ID/Secret**: For Twitch integration
+- **IGDB Client ID/Secret**: For game search (optional, uses Twitch credentials as fallback)
 
-#### Issue: Build fails
-**Solution**:
-- Ensure `requirements.txt` is up to date
-- Check Python version compatibility
-- Verify all dependencies are available
+## Health Check
 
-#### Issue: App starts but API calls fail
-**Solution**:
-- Verify API keys are correct
-- Check API rate limits
-- Test individual API endpoints
-
-## Testing Deployment
-
-1. **Health Check**: Visit `https://your-app.railway.app/`
-2. **API Test**: Visit `https://your-app.railway.app/health`
-3. **GPT-4o Test**: Visit `https://your-app.railway.app/api/test-gpt4o`
-
-## Monitoring
-
-- **Railway Dashboard**: Monitor resource usage and logs
-- **Health Endpoint**: Check `/health` for service status
-- **API Usage**: Monitor RAWG API usage in logs
-
-## Rollback
-
-If deployment fails:
-1. Check Railway logs for specific errors
-2. Fix issues in code
-3. Push changes to trigger new deployment
-4. Railway will automatically rollback if health checks fail 
+The app includes a health check endpoint at `/health` that Railway uses to verify deployment success. 
