@@ -32,9 +32,9 @@ app.add_middleware(
         "https://localhost:3000",
         "http://127.0.0.1:3000",
         "https://127.0.0.1:3000",
-        # TODO: Add your Railway frontend URL here after deployment
-        # Example: "https://your-frontend-app-name.railway.app"
-        # Example: "https://your-custom-domain.com"
+        "https://nexa-pro.up.railway.app",
+        "https://*.railway.app",
+        "*"  # Allow all origins for now - you can restrict this later
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -780,14 +780,47 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 @app.post("/api/recommendations")
 @limiter.limit("10/minute")
 async def recommendations(request: RecommendationRequest):
-    result = await get_recommendations(request.preference, request.sort_by, request.filters)
-    return result
+    try:
+        # Check if required environment variables are set
+        missing_vars = check_environment()
+        if missing_vars:
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "error": "Missing required environment variables",
+                    "missing_vars": missing_vars,
+                    "message": "Please configure the required API keys in Railway environment variables"
+                }
+            )
+        
+        result = await get_recommendations(request.preference, request.sort_by, request.filters)
+        return result
+    except Exception as e:
+        print(f"Error in recommendations endpoint: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "Internal server error",
+                "message": str(e),
+                "ai_down": True
+            }
+        )
 
 @app.post("/api/game-details")
 @limiter.limit("10/minute")
 async def game_details(request: GameDetailsRequest):
-    result = await get_game_details(request.title)
-    return result
+    try:
+        result = await get_game_details(request.title)
+        return result
+    except Exception as e:
+        print(f"Error in game details endpoint: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "Internal server error",
+                "message": str(e)
+            }
+        )
 
 # Catch-all route for React Router
 @app.get("/{full_path:path}")
