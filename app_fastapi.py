@@ -680,7 +680,18 @@ async def root():
 @app.get("/health")
 async def health_check():
     """Health check endpoint for Railway deployment"""
-    return {"status": "ok"}
+    try:
+        # Check if basic environment is working
+        import os
+        port = os.getenv("PORT", "not_set")
+        
+        return {
+            "status": "ok",
+            "port": port,
+            "environment": "production" if os.getenv("RAILWAY_ENVIRONMENT") else "development"
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.get("/api/test-gpt4o")
 async def test_gpt4o():

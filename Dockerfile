@@ -28,8 +28,8 @@ COPY . .
 # Build the React app
 RUN npm run build
 
-# Expose port
-EXPOSE $PORT
+# Expose port (default to 8000 if not set)
+EXPOSE ${PORT:-8000}
 
-# Start the application
-CMD ["python3", "-m", "uvicorn", "app_fastapi:app", "--host", "0.0.0.0", "--port", "$PORT"] 
+# Start the application using the start script
+CMD ["python3", "start.py"] 
