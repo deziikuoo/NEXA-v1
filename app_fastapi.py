@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -15,9 +15,8 @@ import time
 from datetime import datetime, timedelta
 import anthropic
 import os
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
-from slowapi.errors import RateLimitExceeded
+from collections import defaultdict
+import time
 
 # Load environment variables from .env file
 load_dotenv()
@@ -773,13 +772,39 @@ async def test_gpt4o():
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
-limiter = Limiter(key_func=get_remote_address)
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+# Custom rate limiter implementation
+rate_limit_store = defaultdict(list)
+RATE_LIMIT_REQUESTS = 10
+RATE_LIMIT_WINDOW = 60  # seconds
+
+def check_rate_limit(client_ip: str) -> bool:
+    """Check if client has exceeded rate limit"""
+    now = time.time()
+    # Clean old requests outside the window
+    rate_limit_store[client_ip] = [req_time for req_time in rate_limit_store[client_ip] 
+                                  if now - req_time < RATE_LIMIT_WINDOW]
+    
+    # Check if limit exceeded
+    if len(rate_limit_store[client_ip]) >= RATE_LIMIT_REQUESTS:
+        return False
+    
+    # Add current request
+    rate_limit_store[client_ip].append(now)
+    return True
 
 @app.post("/api/recommendations")
-@limiter.limit("10/minute")
-async def recommendations(request: RecommendationRequest):
+async def recommendations(request: RecommendationRequest, req: Request):
+    # Check rate limit
+    client_ip = req.client.host
+    if not check_rate_limit(client_ip):
+        return JSONResponse(
+            status_code=429,
+            content={
+                "error": "Rate limit exceeded",
+                "message": "Too many requests. Please try again later."
+            }
+        )
+    
     try:
         # Check if required environment variables are set
         missing_vars = check_environment()
@@ -807,8 +832,18 @@ async def recommendations(request: RecommendationRequest):
         )
 
 @app.post("/api/game-details")
-@limiter.limit("10/minute")
-async def game_details(request: GameDetailsRequest):
+async def game_details(request: GameDetailsRequest, req: Request):
+    # Check rate limit
+    client_ip = req.client.host
+    if not check_rate_limit(client_ip):
+        return JSONResponse(
+            status_code=429,
+            content={
+                "error": "Rate limit exceeded",
+                "message": "Too many requests. Please try again later."
+            }
+        )
+    
     try:
         result = await get_game_details(request.title)
         return result
