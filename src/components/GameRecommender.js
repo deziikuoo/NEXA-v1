@@ -12,6 +12,8 @@ function GameRecommender({
   onAutocomplete,
   filters,
   setFilters,
+  aiDown,
+  aiDownMessage,
 }) {
   const [preference, setPreference] = useState("");
   const [sortBy, setSortBy] = useState("metacritic");
@@ -352,7 +354,13 @@ function GameRecommender({
 
       {loading && <div className="loading-spinner"></div>}
 
-      {explain && <div className="explain-message glass-panel">{explain}</div>}
+      {aiDown && (
+        <div className="ai-down-message glass-panel">
+          <h2>{aiDownMessage}</h2>
+        </div>
+      )}
+
+      {!aiDown && explain && <div className="explain-message glass-panel">{explain}</div>}
 
       <div className="games-grid">
         {games.slice(0, 19).map((game, index) => (

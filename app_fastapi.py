@@ -15,6 +15,9 @@ import time
 from datetime import datetime, timedelta
 import anthropic
 import os
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 # Load environment variables from .env file
 load_dotenv()
@@ -550,67 +553,99 @@ async def get_recommendations(preference: str, sort_by: str = "release_date", fi
     # Enhanced exact matching using multiple sources
     exact_match_found = False
     exact_match_title = None
-    
-    # Try IGDB first for exact matching
     try:
-        igdb_results = await igdb_search_games(preference, limit=5)
-        for game in igdb_results:
-            if game["name"].lower() == preference_lower:
-                exact_match_found = True
-                exact_match_title = game["name"]
-                break
-    except Exception as e:
-        print(f"IGDB search error: {e}")
-    
-    # If no exact match in IGDB, try RAWG for partial matches
-    if not exact_match_found:
+        # Try IGDB first for exact matching
         try:
-            rawg_api_key = get_rawg_api_key()
-            if rawg_api_key:
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(
-                        "https://api.rawg.io/api/games",
-                        params={"search": preference, "key": rawg_api_key}
-                    ) as response:
-                        if response.status == 200:
-                            result = await response.json()
-                            if result.get("results"):
-                                # Check for exact or very close matches
-                                for game in result["results"][:3]:
-                                    game_name_lower = game["name"].lower()
-                                    if (game_name_lower == preference_lower or 
-                                        preference_lower in game_name_lower or 
-                                        game_name_lower in preference_lower):
-                                        exact_match_found = True
-                                        exact_match_title = game["name"]
-                                        break
+            igdb_results = await igdb_search_games(preference, limit=5)
+            for game in igdb_results:
+                if game["name"].lower() == preference_lower:
+                    exact_match_found = True
+                    exact_match_title = game["name"]
+                    break
         except Exception as e:
-            print(f"RAWG search error: {e}")
-    
-    # Generate recommendations based on match type
-    if exact_match_found:
-        # Found exact match - get similar games
-        ai_titles = await fetch_game_titles_gpt4o(f"Games similar to {exact_match_title}", filters)
-        titles = [exact_match_title] + [t for t in ai_titles if t.lower() != exact_match_title.lower()][:17]
-        explain = f"Found exact match for '{exact_match_title}' with similar trending games and curated gems."
-    else:
-        # No exact match - use AI for general recommendations
-        titles = await fetch_game_titles_gpt4o(preference, filters)
-        explain = "GPT-4o AI recommendations: 80% trending/popular games, 20% timeless classics - all perfectly matched to your preferences."
-    
-    # Fetch detailed game information
-    games = await fetch_game_details(titles)
-    
-    if games:
-        # Enhanced sorting options
-        if sort_by == "rating":
-            games.sort(key=lambda x: float(x["rating"]) if x["rating"] != "N/A" else 0, reverse=True)
-        elif sort_by == "metacritic":
-            games.sort(key=lambda x: int(x["metacritic"]) if x["metacritic"] not in ["N/A", None] else 0, reverse=True)
-        else:  # release_date
-            games.sort(key=lambda x: x["release_date"] if x["release_date"] != "N/A" else "1970-01-01", reverse=True)
-    
-    return {"games": games, "explain": explain}
+            print(f"IGDB search error: {e}")
+        # If no exact match in IGDB, try RAWG for partial matches
+        if not exact_match_found:
+            try:
+                rawg_api_key = get_rawg_api_key()
+                if rawg_api_key:
+                    async with aiohttp.ClientSession() as session:
+                        async with session.get(
+                            "https://api.rawg.io/api/games",
+                            params={"search": preference, "key": rawg_api_key}
+                        ) as response:
+                            if response.status == 200:
+                                result = await response.json()
+                                if result.get("results"):
+                                    # Check for exact or very close matches
+                                    for game in result["results"][:3]:
+                                        game_name_lower = game["name"].lower()
+                                        if (game_name_lower == preference_lower or 
+                                            preference_lower in game_name_lower or 
+                                            game_name_lower in preference_lower):
+                                            exact_match_found = True
+                                            exact_match_title = game["name"]
+                                            break
+            except Exception as e:
+                print(f"RAWG search error: {e}")
+        # Generate recommendations based on match type
+        if exact_match_found:
+            # Found exact match - get similar games
+            ai_titles = await fetch_game_titles_gpt4o(f"Games similar to {exact_match_title}", filters)
+            titles = [exact_match_title] + [t for t in ai_titles if t.lower() != exact_match_title.lower()][:17]
+            explain = f"Found exact match for '{exact_match_title}' with similar trending games and curated gems."
+        else:
+            # No exact match - use AI for general recommendations
+            titles = await fetch_game_titles_gpt4o(preference, filters)
+            explain = "GPT-4o AI recommendations: 80% trending/popular games, 20% timeless classics - all perfectly matched to your preferences."
+        # Fetch detailed game information
+        games = await fetch_game_details(titles)
+        if games:
+            # Enhanced sorting options
+            if sort_by == "rating":
+                games.sort(key=lambda x: float(x["rating"]) if x["rating"] != "N/A" else 0, reverse=True)
+            elif sort_by == "metacritic":
+                games.sort(key=lambda x: int(x["metacritic"]) if x["metacritic"] not in ["N/A", None] else 0, reverse=True)
+            else:  # release_date
+                games.sort(key=lambda x: x["release_date"] if x["release_date"] != "N/A" else "1970-01-01", reverse=True)
+        return {"games": games, "explain": explain}
+    except Exception as e:
+        # AI API failed, return static example
+        static_games = [
+            {
+                "title": "The Witcher 3: Wild Hunt",
+                "description": "An epic open-world RPG with a rich story and deep gameplay.",
+                "rating": 9.5,
+                "release_date": "2015-05-18",
+                "platforms": "PC, PS4, Xbox One, Switch",
+                "genres": "RPG, Adventure",
+                "developers": "CD Projekt Red",
+                "publishers": "CD Projekt",
+                "metacritic": 93,
+                "esrb_rating": "Mature",
+                "website": "https://thewitcher.com/en/witcher3",
+                "background_image": "https://media.rawg.io/media/games/0b7/0b78e1e8e6c6b1b2c2e2e2e2e2e2e2e2.jpg"
+            },
+            {
+                "title": "Celeste",
+                "description": "A beautiful indie platformer about climbing a mountain and overcoming challenges.",
+                "rating": 9.0,
+                "release_date": "2018-01-25",
+                "platforms": "PC, PS4, Xbox One, Switch",
+                "genres": "Platformer, Indie",
+                "developers": "Matt Makes Games",
+                "publishers": "Matt Makes Games",
+                "metacritic": 92,
+                "esrb_rating": "Everyone 10+",
+                "website": "https://www.celestegame.com/",
+                "background_image": "https://media.rawg.io/media/games/6b5/6b5a5e5e5e5e5e5e5e5e5e5e5e5e5e5e.jpg"
+            }
+        ]
+        return {
+            "ai_down": True,
+            "message": "Our AI-powered recommendations are temporarily unavailable. Here’s an example of what you would see if the service was live.",
+            "games": static_games
+        }
 
 async def get_game_details(title: str):
     """
@@ -738,12 +773,18 @@ async def test_gpt4o():
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 @app.post("/api/recommendations")
+@limiter.limit("10/minute")
 async def recommendations(request: RecommendationRequest):
     result = await get_recommendations(request.preference, request.sort_by, request.filters)
     return result
 
 @app.post("/api/game-details")
+@limiter.limit("10/minute")
 async def game_details(request: GameDetailsRequest):
     result = await get_game_details(request.title)
     return result

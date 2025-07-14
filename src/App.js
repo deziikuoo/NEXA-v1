@@ -13,10 +13,14 @@ function App() {
   const [explain, setExplain] = useState("");
   const [autocomplete, setAutocomplete] = useState([]);
   const [filters, setFilters] = useState({});
+  const [aiDown, setAiDown] = useState(false);
+  const [aiDownMessage, setAiDownMessage] = useState("");
 
   const handleGetRecommendations = async (preference, sortBy, filtersArg) => {
     setLoading(true);
     setError(null);
+    setAiDown(false);
+    setAiDownMessage("");
     try {
       const result = await gameService.getRecommendations(
         preference,
@@ -25,6 +29,10 @@ function App() {
       );
       setGames(result.games);
       setExplain(result.explain || "");
+      if (result.ai_down) {
+        setAiDown(true);
+        setAiDownMessage(result.message || "Our AI-powered recommendations are temporarily unavailable. Here’s an example of what you would see if the service was live.");
+      }
     } catch (err) {
       console.error("Error getting recommendations:", err);
       setError(
@@ -105,6 +113,8 @@ function App() {
           onAutocomplete={handleAutocomplete}
           filters={filters}
           setFilters={setFilters}
+          aiDown={aiDown}
+          aiDownMessage={aiDownMessage}
         />
 
         {selectedGame && (
