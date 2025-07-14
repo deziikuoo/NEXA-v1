@@ -33,6 +33,7 @@ app.add_middleware(
         "https://127.0.0.1:3000",
         "https://nexa-pro.up.railway.app",
         "https://*.railway.app",
+        "https://nexa-pro.up.railway.app",  # Explicit Railway domain
         "*"  # Allow all origins for now - you can restrict this later
     ],
     allow_credentials=True,

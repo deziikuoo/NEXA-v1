@@ -1,6 +1,37 @@
 {
-  "name": "game-recommender",
-  "version": "0.1.0",
+  "name": "nexa-game-recommender",
+  "version": "1.0.0",
+  "description": "AI-powered game recommendation system using GPT-4o and multiple gaming APIs",
+  "keywords": [
+    "game-recommender",
+    "ai",
+    "gpt-4o",
+    "fastapi",
+    "react",
+    "gaming",
+    "recommendations",
+    "rawg",
+    "twitch",
+    "igdb"
+  ],
+  "author": {
+    "name": "NEXA Team",
+    "email": "your-email@example.com",
+    "url": "https://github.com/deziikuoo"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/deziikuoo/NEXA-v1.git"
+  },
+  "bugs": {
+    "url": "https://github.com/deziikuoo/NEXA-v1/issues"
+  },
+  "homepage": "https://nexa-pro.up.railway.app",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
   "private": true,
   "dependencies": {
     "@headlessui/react": "^1.7.17",
@@ -12,7 +43,10 @@
     "tailwindcss": "^3.3.5"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "eslint": "^8.0.0",
+    "eslint-config-react-app": "^7.0.0",
+    "prettier": "^3.0.0"
   },
   "scripts": {
     "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",
@@ -20,7 +54,20 @@
     "start:backend": "python -m uvicorn app_fastapi:app --host 127.0.0.1 --port 8000 --reload",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "test:coverage": "react-scripts test --coverage --watchAll=false",
+    "eject": "react-scripts eject",
+    "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint src --ext .js,.jsx,.ts,.tsx --fix",
+    "format": "prettier --write src/**/*.{js,jsx,ts,tsx,css,md}",
+    "format:check": "prettier --check src/**/*.{js,jsx,ts,tsx,css,md}",
+    "dev": "npm run start",
+    "prod": "npm run build && python start.py",
+    "clean": "rm -rf build node_modules package-lock.json",
+    "install:clean": "npm run clean && npm install",
+    "docker:build": "docker build -t nexa-game-recommender .",
+    "docker:run": "docker run -p 8000:8000 --env-file .env nexa-game-recommender",
+    "setup": "python setup_env.py",
+    "setup:validate": "python setup_env.py validate"
   },
   "eslintConfig": {
     "extends": [
@@ -39,5 +86,12 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "prettier": {
+    "semi": true,
+    "trailingComma": "es5",
+    "singleQuote": true,
+    "printWidth": 80,
+    "tabWidth": 2
   }
 }
