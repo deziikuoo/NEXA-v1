@@ -290,7 +290,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Issues**: [GitHub Issues](https://github.com/deziikuoo/NEXA-v1/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/deziikuoo/NEXA-v1/discussions)
-- **Email**: [Your Email]
+- **Email**: IfDawanPrintQualified14@gmail.com
 
 ## 📊 Project Status
 

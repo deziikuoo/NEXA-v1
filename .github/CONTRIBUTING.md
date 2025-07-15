@@ -185,7 +185,7 @@ We use the following labels to categorize issues:
 
 - **GitHub Issues**: For bug reports and feature requests
 - **GitHub Discussions**: For general questions and discussions
-- **Email**: [Your Email] for private matters
+- **Email**: IfDawanPrintQualified14@gmail.com for private matters
 
 ## 🎯 Areas for Contribution
 
