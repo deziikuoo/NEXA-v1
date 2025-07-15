@@ -20,6 +20,42 @@ A modern, AI-powered web application that recommends video games based on user p
 - ⚡ **Fast Performance**: Built with FastAPI for high-performance async operations
 - 🔒 **Rate Limiting**: Built-in protection against API abuse
 
+## 🖼️ Visual Preview
+
+### 🎯 Main Interface
+![Main Interface](screenshots/main-interface.png)
+*Modern gaming-inspired UI with neon gradients and glass morphism effects*
+
+### 🎲 Game Recommendations
+![Game Recommendations](screenshots/recommendations.png)
+*AI-powered game suggestions with real-time Twitch viewer data*
+
+### 📱 Responsive Design
+![Mobile View](screenshots/mobile-view.png)
+*Fully responsive design that works seamlessly on all devices*
+
+### 🔍 Game Details Modal
+![Game Details](screenshots/game-details-modal.png)
+*Comprehensive game information with screenshots and metadata*
+
+---
+
+## 🚀 UI Feature Showcase
+
+### 🎛️ Dynamic Filters
+![Dynamic Filters](screenshots/feature-filters.gif)
+*Interactively filter games by genre, platform, year, and mode with smooth animations.*
+
+### 🪟 Modal Animation
+![Modal Animation](screenshots/feature-modal.gif)
+*Seamless modal transitions for detailed game information, including screenshots and metadata.*
+
+### ✨ Interactive Background Dots
+![Interactive Background Dots](screenshots/feature-background-dots.gif)
+*Animated, interactive background dots create a futuristic and immersive visual experience.*
+
+---
+
 ## 🛠️ Tech Stack
 
 ### Backend
