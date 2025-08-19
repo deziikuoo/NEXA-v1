@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Automatically detect environment and use appropriate API URL
 const API_BASE_URL = process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production' 
-  ? 'https://your-render-app-name.onrender.com/api'  // Replace with your actual Render URL
+  ? 'https://nexa-v1-2e15.onrender.com/api'
   : "http://localhost:8000/api");
 
 console.log('API Base URL:', API_BASE_URL);
