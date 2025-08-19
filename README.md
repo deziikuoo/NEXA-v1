@@ -5,7 +5,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104.1-green.svg)](https://fastapi.tiangolo.com)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Deploy on Railway](https://img.shields.io/badge/Deploy%20on-Railway-0B0D0E?logo=railway)](https://railway.app)
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-nexa--pro.up.railway.app-brightgreen)](https://nexa-pro.up.railway.app)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-nexa--v1--plum.vercel.app-brightgreen)](https://nexa-v1-plum.vercel.app/)
 
 A modern, AI-powered web application that recommends video games based on user preferences using GPT-4o and multiple gaming APIs. Built with FastAPI backend and React frontend.
 
@@ -151,7 +151,7 @@ This will start both frontend and backend concurrently.
 
 ### 5. 🌐 Try the Live Demo
 Don't want to set up locally? Try the live application:
-**🎮 [https://nexa-pro.up.railway.app](https://nexa-pro.up.railway.app)**
+**🎮 [https://nexa-v1-plum.vercel.app/](https://nexa-v1-plum.vercel.app/)**
 
 ## 🔧 API Keys Setup
 
@@ -179,17 +179,37 @@ Don't want to set up locally? Try the live application:
 
 ## 🚀 Deployment
 
-### Railway Deployment (Recommended)
+### Vercel Deployment (Frontend - Recommended)
+1. **Fork this repository** to your GitHub account
+2. **Connect to Vercel:**
+   - Visit [Vercel](https://vercel.com)
+   - Click "New Project" → "Import Git Repository"
+   - Select your forked repository
+3. **Configure build settings:**
+   - Framework Preset: Create React App
+   - Root Directory: `./` (or leave empty)
+   - Build Command: `npm run build`
+   - Output Directory: `build`
+4. **Set environment variables** in Vercel dashboard:
+   - `REACT_APP_API_URL`: Your backend API URL
+5. **Deploy!** Vercel will automatically build and deploy your frontend
+
+### Render Deployment (Backend)
 
 1. **Fork this repository** to your GitHub account
-2. **Connect to Railway:**
-   - Visit [Railway](https://railway.app)
-   - Click "New Project" → "Deploy from GitHub repo"
+2. **Connect to Render:**
+   - Visit [Render](https://render.com)
+   - Click "New" → "Web Service" → "Connect Repository"
    - Select your forked repository
-3. **Set environment variables** in Railway dashboard
-4. **Deploy!** Railway will automatically build and deploy your app
+3. **Configure the service:**
+   - Name: `nexa-backend` (or your preferred name)
+   - Environment: `Docker`
+   - Branch: `main`
+   - Root Directory: Leave empty
+4. **Set environment variables** in Render dashboard
+5. **Deploy!** Render will automatically build and deploy your backend
 
-**🎮 Live Demo**: [https://nexa-pro.up.railway.app](https://nexa-pro.up.railway.app)
+**🎮 Live Demo**: [https://nexa-v1-plum.vercel.app/](https://nexa-v1-plum.vercel.app/)
 
 ### Docker Deployment
 
@@ -284,7 +304,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🌐 Live Demo
 
 **🎮 Try NEXA Game Recommender now!**
-- **Live Application**: [https://nexa-pro.up.railway.app](https://nexa-pro.up.railway.app)
+- **Live Application**: [https://nexa-v1-plum.vercel.app/](https://nexa-v1-plum.vercel.app/)
 
 ## 📞 Support
 
