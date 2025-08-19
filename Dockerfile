@@ -1,26 +1,14 @@
-# Use Python 3.9 slim image
-FROM python:3.9-slim
+# Multi-stage build for better efficiency
+FROM node:18-alpine AS frontend-builder
 
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    nodejs \
-    npm \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements first for better caching
-COPY requirements.txt .
-
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
 # Copy package files
 COPY package*.json ./
 
-# Install Node.js dependencies
-RUN npm ci
+# Install dependencies
+RUN npm ci --no-audit --no-fund
 
 # Copy source code
 COPY . .
@@ -28,8 +16,31 @@ COPY . .
 # Build the React app
 RUN npm run build
 
-# Expose port (default to 8000 if not set)
+# Python runtime stage
+FROM python:3.9-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Copy requirements and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the built React app from the frontend stage
+COPY --from=frontend-builder /app/build ./build
+
+# Copy Python source code
+COPY app_fastapi.py .
+COPY start.py .
+
+# Expose port
 EXPOSE ${PORT:-8000}
 
-# Start the application using the start script
+# Start the application
 CMD ["python3", "start.py"] 
