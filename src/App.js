@@ -27,17 +27,19 @@ function App() {
         sortBy,
         filtersArg || filters
       );
-      setGames(result.games);
+      // Ensure games is always an array
+      setGames(Array.isArray(result.games) ? result.games : []);
       setExplain(result.explain || "");
       if (result.ai_down) {
         setAiDown(true);
-        setAiDownMessage(result.message || "Our AI-powered recommendations are temporarily unavailable. Here’s an example of what you would see if the service was live.");
+        setAiDownMessage(result.message || "Our AI-powered recommendations are temporarily unavailable. Here's an example of what you would see if the service was live.");
       }
     } catch (err) {
       console.error("Error getting recommendations:", err);
       setError(
         err.message || "Failed to get recommendations. Please try again."
       );
+      setGames([]); // Reset games to empty array on error
     } finally {
       setLoading(false);
     }
@@ -48,8 +50,14 @@ function App() {
       setAutocomplete([]);
       return;
     }
-    const results = await gameService.igdbAutocomplete(query);
-    setAutocomplete(results);
+    try {
+      const results = await gameService.igdbAutocomplete(query);
+      // Ensure results is always an array
+      setAutocomplete(Array.isArray(results) ? results : []);
+    } catch (error) {
+      console.error("Autocomplete error:", error);
+      setAutocomplete([]);
+    }
   };
 
   const handleViewDetails = async (game) => {

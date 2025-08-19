@@ -297,7 +297,7 @@ function GameRecommender({
               onFocus={() => setShowAutocomplete(true)}
               onBlur={() => setTimeout(() => setShowAutocomplete(false), 150)}
             />
-            {showAutocomplete && autocomplete && autocomplete.length > 0 && (
+            {showAutocomplete && autocomplete && Array.isArray(autocomplete) && autocomplete.length > 0 && (
               <ul className="autocomplete-dropdown">
                 {autocomplete.slice(0, 7).map((s, i) => (
                   <li
@@ -363,7 +363,7 @@ function GameRecommender({
       {!aiDown && explain && <div className="explain-message glass-panel">{explain}</div>}
 
       <div className="games-grid">
-        {games.slice(0, 19).map((game, index) => (
+        {Array.isArray(games) && games.slice(0, 19).map((game, index) => (
           <GameCard
             key={game.title}
             game={game}
