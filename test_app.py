@@ -1,6 +1,7 @@
 """
 Test file for NEXA Game Recommender FastAPI application
 """
+
 import pytest
 from fastapi.testclient import TestClient
 from app_fastapi import app
@@ -54,4 +55,4 @@ def test_cors_headers():
 
 
 if __name__ == "__main__":
-    pytest.main([__file__]) 
+    pytest.main([__file__])
