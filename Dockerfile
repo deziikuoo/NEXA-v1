@@ -7,7 +7,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
+# Install dependencies (with cache-busting comment to force rebuild)
+# Updated: 2025-11-25 - Fixed package-lock.json sync issue
 RUN npm ci --no-audit --no-fund
 
 # Copy source code
