@@ -8,7 +8,9 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # Install dependencies
-RUN npm ci --no-audit --no-fund
+# Using npm install instead of npm ci for better compatibility with Railway
+# npm install will update lock file if needed, making builds more resilient
+RUN npm install --no-audit --no-fund --production=false
 
 # Copy source code
 COPY . .
