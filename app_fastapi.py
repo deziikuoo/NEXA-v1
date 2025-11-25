@@ -403,7 +403,10 @@ CRITICAL REQUIREMENTS:
         print(f"GPT-4o API error: {e}")
         raise HTTPException(
             status_code=500,
-            detail="Sorry, we're having trouble connecting to our AI recommendation service right now. Please try again in a few moments.",
+            detail=(
+                "Sorry, we're having trouble connecting to our AI "
+                "recommendation service right now. Please try again in a few moments."
+            ),
         )
 
 
@@ -772,7 +775,10 @@ async def get_recommendations(  # noqa: C901
         ]
         return {
             "ai_down": True,
-            "message": "Our AI-powered recommendations are temporarily unavailable. Here’s an example of what you would see if the service was live.",
+            "message": (
+                "Our AI-powered recommendations are temporarily unavailable. "
+                "Here's an example of what you would see if the service was live."
+            ),
             "games": static_games,
         }
 

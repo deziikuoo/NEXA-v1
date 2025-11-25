@@ -153,38 +153,8 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
-  deploy-staging:
-    name: Deploy to Staging
-    runs-on: ubuntu-latest
-    needs: [test-backend, test-frontend, security-scan]
-    if: github.ref == 'refs/heads/develop' && always()
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Deploy to Railway (Staging)
-      uses: railway/deploy@v1
-      with:
-        service: nexa-staging
-        token: ${{ secrets.RAILWAY_TOKEN }}
-
-  deploy-production:
-    name: Deploy to Production
-    runs-on: ubuntu-latest
-    needs: [test-backend, test-frontend, security-scan]
-    if: github.ref == 'refs/heads/main' && always()
-    environment: production
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Deploy to Railway (Production)
-      uses: railway/deploy@v1
-      with:
-        service: nexa-production
-        token: ${{ secrets.RAILWAY_TOKEN }}
+  # Note: Railway auto-deploys from GitHub when repo is connected
+  # No manual deployment step needed - Railway watches for pushes
 
   notify:
     name: Notify on Failure
