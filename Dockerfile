@@ -4,11 +4,10 @@ FROM node:18-alpine AS frontend-builder
 # Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy package files (order matters for Docker layer caching)
+COPY package.json package-lock.json ./
 
-# Install dependencies (with cache-busting comment to force rebuild)
-# Updated: 2025-11-25 - Fixed package-lock.json sync issue
+# Install dependencies
 RUN npm ci --no-audit --no-fund
 
 # Copy source code
